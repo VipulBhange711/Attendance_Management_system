@@ -84,6 +84,7 @@ class EmployeeManagementController extends Controller
         'payperday' => $request->payperday,
         'updated_at' => now(),
     ]);
+    
 
           return response()->json(['success' => true]);
     }

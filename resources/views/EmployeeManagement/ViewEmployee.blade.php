@@ -11,7 +11,7 @@
     <div class="container-fluid">
 
         <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block" data-toggle="modal"
-            data-target="#exampleModal"><i class="las la-plus mr-2"></i>Add New Employee
+            data-target="#exampleModal"><i class="las la-plus mr-2"></i>New Order
         </a>
 
 
@@ -40,10 +40,6 @@
     </div>
 </div>
 </div>
-
-
-
-
 <!-- Add Employee Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
@@ -60,17 +56,17 @@
                     @csrf
                     <div class="form-group">
                         <label for="name">Employee Name</label>
-                        <input type="text" class="form-control" name="name" required>
+                        <input type="text" class="form-control" name="name"  id="Add_name" required>
                     </div>
 
                     <div class="form-group">
                         <label for="empid">Employee ID</label>
-                        <input type="text" class="form-control" name="empid" required>
+                        <input type="text" class="form-control" name="empid" id="Add_empid" required>
                     </div>
 
                     <div class="form-group">
                         <label for="payperday">Pay Per Day</label>
-                        <input type="number" class="form-control" name="payperday" step="0.01" required>
+                        <input type="number" class="form-control" name="payperday" id="Add_payperday" step="0.01" required>
                     </div>
                 </form>
             </div>
@@ -170,9 +166,6 @@
     </div>
 </div>
 <!-- End Delete Employee Modal -->
-
-
-
 @include('include.footer')
 
 <script>
@@ -218,13 +211,15 @@
         // add employee
         $('#saveEmployee').click(function (e) {
             e.preventDefault();
-
             let formData = {
-                name: $('#name').val(),
-                empid: $('#empid').val(),
-                payperday: $('#payperday').val(),
+                name: $('#Add_name').val(),
+                empid: $('#Add_empid').val(),
+                payperday: $('#Add_payperday').val(),
                 _token: '{{ csrf_token() }}'
             };
+
+            console.log(formData);
+            // return false;
 
             $.ajax({
                 url: "{{ route('employees.store') }}",
@@ -242,6 +237,8 @@
 
                         //  Reset the form
                         $('#employeeForm')[0].reset();
+                         $('#employeeTable').DataTable().ajax.reload();
+                        window.location.reload();
 
                         setTimeout(() => {
                             $('#exampleModal').modal('hide');
@@ -303,11 +300,7 @@
                 }
             });
         });
-
-
-
         // edit employee
-
     });
 
    function editwithid(data) {
@@ -318,42 +311,11 @@
     $('#payperday').val(data.payperday);
 }
    function deletewithid(data) {
-    // Fill modal fields with data
     $('#delete_employee_id').val(data.id);
     $('#delete_name').val(data.name);
     $('#delete_empid').val(data.empid);
     $('#delete_payperday').val(data.payperday);
-
-    // Show modal
     $('#deleteemployeeM').modal('show');
 }
-$('#deleteEmployeeBtn').click(function (e) {
-    e.preventDefault();
-    let id = $('#delete_employee_id').val();
-    $.ajax({
-        url: "{{ route('employees.destroy') }}", 
-        method: "POST",
-        data: {
-            id: id,
-            _token: '{{ csrf_token() }}'
-        },
-        success: function (response) {
-            if (response.success) {
-                Swal.fire({
-                    title: 'Deleted!',
-                    text: 'Employee deleted successfully!',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                $('#deleteemployeeM').modal('hide');
-                $('.data-table').DataTable().ajax.reload(null, false); 
-            }
-        },
-        error: function (xhr) {
-            console.error(xhr.responseText);
-            alert('Something went wrong while deleting!');
-        }
-    });
-});
+
 </script>

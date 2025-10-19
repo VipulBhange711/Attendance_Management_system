@@ -10,10 +10,7 @@
                       </a>
                   </div>
                   <div class="iq-search-bar device-search">
-                      {{-- <form action="#" class="searchbox">
-                          <a class="search-link" href="#"><i class="ri-search-line"></i></a>
-                          <input type="text" class="text search-input" placeholder="Search here...">
-                      </form> --}}
+                
                   </div>
                   <div class="d-flex align-items-center">
                       <button class="navbar-toggler" type="button" data-toggle="collapse"
@@ -23,40 +20,7 @@
                       </button>
                       <div class="collapse navbar-collapse" id="navbarSupportedContent">
                           <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                              {{-- <li class="nav-item nav-icon dropdown">
-                                  <a href="#" class="search-toggle dropdown-toggle btn border add-btn"
-                                      id="dropdownMenuButton02" data-toggle="dropdown" aria-haspopup="true"
-                                      aria-expanded="false">
-                                      <img src="{{asset('images/small/flag-01.png')}}" alt="img-flag"
-                                          class="img-fluid image-flag mr-2">En
-                                  </a>
-                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                      <div class="card shadow-none m-0">
-                                          <div class="card-body p-3">
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="{{asset('images/small/flag-02.png')}}" alt="img-flag"
-                                                      class="img-fluid mr-2">French</a>
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="{{asset('images/small/flag-03.png')}}" alt="img-flag"
-                                                      class="img-fluid mr-2">Spanish</a>
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="{{asset('images/small/flag-04.png')}}" alt="img-flag"
-                                                      class="img-fluid mr-2">Italian</a>
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="{{asset('images/small/flag-05.png')}}" alt="img-flag"
-                                                      class="img-fluid mr-2">German</a>
-                                              <a class="iq-sub-card" href="#"><img
-                                                      src="{{asset('images/small/flag-06.png')}}" alt="img-flag"
-                                                      class="img-fluid mr-2">Japanese</a>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </li>
-                              <li>
-                                  <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block"
-                                      data-toggle="modal" data-target="#new-order"><i class="las la-plus mr-2"></i>New
-                                      Order</a>
-                              </li> --}}
+                              
                               <li class="nav-item nav-icon search-content">
                                   <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
                                       aria-haspopup="true" aria-expanded="false">
