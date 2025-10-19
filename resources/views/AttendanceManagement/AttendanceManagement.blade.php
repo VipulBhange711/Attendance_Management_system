@@ -328,7 +328,15 @@
                             return `<input type="checkbox" class="employee_checkbox" value="${data}" data-row='${JSON.stringify(row)}'>`;
                         }
                     },
-                    { data: 'id', name: 'id' },
+                    {
+                        data: null,
+                        name: 'serial_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
                     { data: 'name', name: 'name' },
                     { data: 'empid', name: 'empid' },
                     { data: 'payperday', name: 'payperday' },
@@ -375,6 +383,8 @@
             }
         });
         $('#saveBulkAttendance').on('click', function () {
+            $('#bulkAttendanceForm').find(':disabled').prop('disabled', false);
+
             $.ajax({
                 url: "{{ route('attendance.bulkUpdate') }}",
                 method: "POST",
@@ -399,7 +409,8 @@
             });
         });
 
-// bulk save and select start
+
+        // bulk save and select start
         $('#viewSelectedEmployees').on('click', function () {
             let selectedRows = [];
             $('.employee_checkbox:checked').each(function () {
@@ -466,96 +477,98 @@
                 }
             });
         });
-// bulk save and select End 
+        // bulk save and select End 
 
-        $('#employee_id').change(function () {
-            let pay = $('option:selected', this).data('pay');
-            $('#payperday').val(pay);
-            calculateTotal();
-        });
-
-        // calculate total 
-        $('#attendance_status').on('change', function () {
-            let status = $(this).val();
-            if (status === 'Absent' || status === 'Holiday') {
-                $('#ot_amount, #ot_hours').prop('disabled', true).val(0);
-            } else {
-                $('#ot_amount, #ot_hours').prop('disabled', false);
-            }
-            calculateTotal();
-        });
-
-        function calculateTotal() {
-            let pay = parseFloat($('#payperday').val()) || 0;
-            let ot_amount = parseFloat($('#ot_amount').val()) || 0;
-            let ot_hours = parseFloat($('#ot_hours').val()) || 0;
-            let status = $('#attendance_status').val();
-            let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
-            $('#total_amount').val(total.toFixed(2));
-        }
-
-        // ajax submit
-        $('#attendanceForm').on('submit', function (e) {
-            e.preventDefault();
-
-            $.ajax({
-                url: "{{ route('attendance.store') }}",
-                method: "POST",
-                data: $(this).serialize(),
-                success: function (response) {
-                    if (response.success) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Attendance marked successfully!',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                        $('#attendanceForm')[0].reset();
-                        $('#attendanceModal').modal('hide');
-                        $('.data-table').DataTable().ajax.reload();
-                    }
-                },
-                error: function (xhr) {
-                    console.log(xhr.responseText);
-                    alert('Error saving attendance!');
-                }
-            });
-        });
+//add attendance change 
+    $('#employee_id').on('change', function () {
+        let pay = $('option:selected', this).data('pay') || 0;
+        $('#payperday').val(pay);
+        recalcTotalSingle();
     });
 
-//update employee attendance-start
-
-    function editemployeeattendance(data) {
-        $("#emaployee_atten_id").val(data.id);
-        $("#employee_id_name").val(data.name);
-        $('#emaployee_atten_payperday').val(data.payperday);
-
-        $("#emaployee_atten_ot_amount").val(0).prop('disabled', false);
-        $("#emaployee_atten_ot_hours").val(0).prop('disabled', false);
-        $("#emaployee_atten_total_amount").val(data.payperday);
-        $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').off('input').on('input', calculateTotal);
-        $('#Edit_attendance_status').off('change').on('change', function () {
-            let status = $(this).val();
-            if (status === 'Absent' || status === 'Holiday') {
-                $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').val(0).prop('disabled', true);
-            } else {
-                $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').prop('disabled', false);
-            }
-            calculateTotal();
-        });
-
-        $('#Edit_attendance_status').trigger('change');
-
-        function calculateTotal() {
-            let pay = parseFloat($('#emaployee_atten_payperday').val()) || 0;
-            let ot_amount = parseFloat($('#emaployee_atten_ot_amount').val()) || 0;
-            let ot_hours = parseFloat($('#emaployee_atten_ot_hours').val()) || 0;
-            let status = $('#Edit_attendance_status').val();
-            let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
-            $('#emaployee_atten_total_amount').val(total.toFixed(2));
+    $('#ot_amount, #ot_hours').on('input', recalcTotalSingle);
+    $('#attendance_status').on('change', function () {
+        let status = $(this).val();
+        if (status === 'Absent' || status === 'Holiday') {
+            $('#ot_amount, #ot_hours').val(0).prop('disabled', true);
+        } else {
+            $('#ot_amount, #ot_hours').prop('disabled', false);
         }
+        recalcTotalSingle();
+    });
+
+    function recalcTotalSingle() {
+        let pay = parseFloat($('#payperday').val()) || 0;
+        let ot_amount = parseFloat($('#ot_amount').val()) || 0;
+        let ot_hours = parseFloat($('#ot_hours').val()) || 0;
+        let status = $('#attendance_status').val();
+        let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
+        $('#total_amount').val(total.toFixed(2));
     }
+
+    // AJAX submit
+    $('#attendanceForm').on('submit', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "{{ route('attendance.store') }}",
+            method: "POST",
+            data: $(this).serialize(),
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Attendance marked successfully!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    $('#attendanceForm')[0].reset();
+                    $('#attendanceModal').modal('hide');
+                    $('.data-table').DataTable().ajax.reload();
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+                alert('Error saving attendance!');
+            }
+        });
+    });
+      //add attendance change  End
+
+
+    //update employee attendance-start
+
+    // function editemployeeattendance(data) {
+    //     console.log(data);
+    //     $("#emaployee_atten_id").val(data.id);
+    //     $("#employee_id_name").val(data.name);
+    //     $('#emaployee_atten_payperday').val(data.payperday);
+
+    //     $("#emaployee_atten_ot_amount").val(0).prop('disabled', false);
+    //     $("#emaployee_atten_ot_hours").val(0).prop('disabled', false);
+    //     $("#emaployee_atten_total_amount").val(data.payperday);
+    //     $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').off('input').on('input', calculateTotal);
+    //     $('#Edit_attendance_status').off('change').on('change', function () {
+    //         let status = $(this).val();
+    //         if (status === 'Absent' || status === 'Holiday') {
+    //             $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').val(0).prop('disabled', true);
+    //         } else {
+    //             $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').prop('disabled', false);
+    //         }
+    //         calculateTotal();
+    //     });
+
+    //     $('#Edit_attendance_status').trigger('change');
+
+    //     function calculateTotal() {
+    //         let pay = parseFloat($('#emaployee_atten_payperday').val()) || 0;
+    //         let ot_amount = parseFloat($('#emaployee_atten_ot_amount').val()) || 0;
+    //         let ot_hours = parseFloat($('#emaployee_atten_ot_hours').val()) || 0;
+    //         let status = $('#Edit_attendance_status').val();
+    //         let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
+    //         $('#emaployee_atten_total_amount').val(total.toFixed(2));
+    //     }
+    // }
     //update employee attendance-end
 
     $('#EditUpdateEmployee').on('click', function (e) {
@@ -591,16 +604,16 @@
 
     //view employee attendance 
 
-    function viewemployeeattendance(data) {
-        console.log(data);
-        $("#view_EmpName").val(data.name);
-        $("#view_Empid").val(data.empid);
-        $("#view_payperday").val(data.payperday);
-        $("#view_amount").val(data.ot_amount);
-        $("#View_hours").val(data.ot_hours);
-        $("#view_staus").val(data.attendance_status);
-        $("#view_total_amount").val(data.total_amount);
-    }
+    // function viewemployeeattendance(data) {
+    //     console.log(data);
+    //     $("#view_EmpName").val(data.name);
+    //     $("#view_Empid").val(data.empid);
+    //     $("#view_payperday").val(data.payperday);
+    //     $("#view_amount").val(data.ot_amount);
+    //     $("#View_hours").val(data.ot_hours);
+    //     $("#view_staus").val(data.attendance_status);
+    //     $("#view_total_amount").val(data.total_amount);
+    // }
 
     // live date and time 
     function updateDateTime() {
@@ -623,4 +636,56 @@
     }
     updateDateTime();
     setInterval(updateDateTime, 1000);
+
+
+});
+</script>
+
+<script>
+    // Update Employee Attendance
+function editemployeeattendance(data) {
+    console.log(data);
+    $("#emaployee_atten_id").val(data.id);
+    $("#employee_id_name").val(data.name);
+    $('#emaployee_atten_payperday').val(data.payperday);
+
+    $("#emaployee_atten_ot_amount").val(0).prop('disabled', false);
+    $("#emaployee_atten_ot_hours").val(0).prop('disabled', false);
+    $("#emaployee_atten_total_amount").val(data.payperday);
+
+    $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').off('input').on('input', calculateTotal);
+    $('#Edit_attendance_status').off('change').on('change', function () {
+        let status = $(this).val();
+        if (status === 'Absent' || status === 'Holiday') {
+            $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').val(0).prop('disabled', true);
+        } else {
+            $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').prop('disabled', false);
+        }
+        calculateTotal();
+    });
+
+    $('#Edit_attendance_status').trigger('change');
+
+    function calculateTotal() {
+        let pay = parseFloat($('#emaployee_atten_payperday').val()) || 0;
+        let ot_amount = parseFloat($('#emaployee_atten_ot_amount').val()) || 0;
+        let ot_hours = parseFloat($('#emaployee_atten_ot_hours').val()) || 0;
+        let status = $('#Edit_attendance_status').val();
+        let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
+        $('#emaployee_atten_total_amount').val(total.toFixed(2));
+    }
+}
+
+// View Employee Attendance
+function viewemployeeattendance(data) {
+    console.log(data);
+    $("#view_EmpName").val(data.name);
+    $("#view_Empid").val(data.empid);
+    $("#view_payperday").val(data.payperday);
+    $("#view_amount").val(data.ot_amount);
+    $("#View_hours").val(data.ot_hours);
+    $("#view_staus").val(data.attendance_status);
+    $("#view_total_amount").val(data.total_amount);
+}
+
 </script>

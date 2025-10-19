@@ -56,7 +56,7 @@
                     @csrf
                     <div class="form-group">
                         <label for="name">Employee Name</label>
-                        <input type="text" class="form-control" name="name"  id="Add_name" required>
+                        <input type="text" class="form-control" name="name" id="Add_name" required>
                     </div>
 
                     <div class="form-group">
@@ -66,7 +66,8 @@
 
                     <div class="form-group">
                         <label for="payperday">Pay Per Day</label>
-                        <input type="number" class="form-control" name="payperday" id="Add_payperday" step="0.01" required>
+                        <input type="number" class="form-control" name="payperday" id="Add_payperday" step="0.01"
+                            required>
                     </div>
                 </form>
             </div>
@@ -178,12 +179,20 @@
                 serverSide: true,
                 ajax: "{{ route('employees.index') }}",
                 columns: [
-                    { data: 'id', name: 'id' },
+                    {
+                        data: null,
+                        name: 'serial_no',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row, meta) {
+                            return meta.row + meta.settings._iDisplayStart + 1;
+                        }
+                    },
                     { data: 'name', name: 'name' },
                     { data: 'empid', name: 'empid' },
                     { data: 'payperday', name: 'payperday' },
                     {
-                        data: null,  
+                        data: null,
                         name: 'action',
                         orderable: false,
                         searchable: false,
@@ -237,7 +246,7 @@
 
                         //  Reset the form
                         $('#employeeForm')[0].reset();
-                         $('#employeeTable').DataTable().ajax.reload();
+                        $('#employeeTable').DataTable().ajax.reload();
                         window.location.reload();
 
                         setTimeout(() => {
@@ -303,19 +312,51 @@
         // edit employee
     });
 
-   function editwithid(data) {
-    // console.log(data);
-    $('#employee_id').val(data.id);
-    $('#name').val(data.name);
-    $('#empid').val(data.empid);
-    $('#payperday').val(data.payperday);
-}
-   function deletewithid(data) {
-    $('#delete_employee_id').val(data.id);
-    $('#delete_name').val(data.name);
-    $('#delete_empid').val(data.empid);
-    $('#delete_payperday').val(data.payperday);
-    $('#deleteemployeeM').modal('show');
-}
+    function editwithid(data) {
+        // console.log(data);
+        $('#employee_id').val(data.id);
+        $('#name').val(data.name);
+        $('#empid').val(data.empid);
+        $('#payperday').val(data.payperday);
+    }
+    function deletewithid(data) {
+        $('#delete_employee_id').val(data.id);
+        $('#delete_name').val(data.name);
+        $('#delete_empid').val(data.empid);
+        $('#delete_payperday').val(data.payperday);
+        $('#deleteemployeeM').modal('show');
+    }
+
+
+    $('#deleteEmployeeBtn').click(function (e) {
+        e.preventDefault();
+        let id = $('#delete_employee_id').val();
+        $.ajax({
+            url: "{{ route('employees.destroy') }}",
+            method: "POST",
+            data: {
+                id: id,
+                _token: '{{ csrf_token() }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'Employee deleted successfully!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    $('#deleteemployeeM').modal('hide');
+                    $('.data-table').DataTable().ajax.reload(null, false);
+                }
+            },
+            error: function (xhr) {
+                console.error(xhr.responseText);
+                alert('Something went wrong while deleting!');
+            }
+        });
+    });
 
 </script>
