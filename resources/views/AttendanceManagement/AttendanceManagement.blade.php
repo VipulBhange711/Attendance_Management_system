@@ -2,34 +2,34 @@
 @include('include.sidebar')
 @include('include.navbar')
 
-
-
 <div class="content-page">
     <div class="container-fluid">
-        <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block" data-toggle="modal"
-            data-target="#attendanceModal"><i class="las la-plus mr-2"></i>New Attendance
-        </a>
-
-        <div class="container">
-            <div class="row">
-                <div class="col-3 offset-9">
-                    <div id="datetime"
-                        style="font-size:18px; font-weight:bold; display:flex; align-items:center; gap:8px;">
-                        <i id="dayNightIcon" class="fa-solid fa-sun" style="color:orange;"></i>
-                        <span id="dateTimeText"></span>
-                    </div>
+        <div class="row">
+            <div class="col-4"> <a href="#" id="viewSingleAttendance"
+                    class="btn border add-btn shadow-none mx-2 d-none d-md-block" data-toggle="modal"
+                    data-target="#attendanceModal"><i class="las la-plus mr-2"></i>New Attendance
+                </a></div>
+            <div class="col-4">
+                <button id="viewSelectedEmployees" class="btn btn-info mb-3" disabled>
+                    View Selected Employees
+                </button>
+            </div>
+            <div class="col-4">
+                <div id="datetime" style="font-size:18px; font-weight:bold; display:flex; align-items:center; gap:8px;">
+                    <i id="dayNightIcon" class="fa-solid fa-sun" style="color:orange;"></i>
+                    <span id="dateTimeText"></span>
                 </div>
             </div>
         </div>
+
         <div class="container">
             <div class="card mt-5">
                 <h3 class="card-header p-3">Employee Attendance</h3>
-
-
                 <div class="card-body">
                     <table class="table table-bordered data-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="select_all"></th>
                                 <th>No</th>
                                 <th>Name</th>
                                 <th>Emp ID</th>
@@ -112,15 +112,12 @@
                             <input type="number" id="total_amount" name="total_amount" class="form-control" readonly>
                         </div>
                     </div>
-
-                    <button type="submit" class="btn btn-primary">Save Attendance</button>
+                    <div class="row mt-3">
+                        <div class="col-5 offset-7">
+                            <button type="submit" class="btn btn-primary">Save Attendance</button>
+                        </div>
+                    </div>
                 </form>
-
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" id="saveAttendance" class="btn btn-primary">Save Attendance</button>
             </div>
         </div>
     </div>
@@ -140,7 +137,7 @@
             </div>
 
             <div class="modal-body">
-                <form id="attendanceForm">
+                <form id="">
                     @csrf
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -241,9 +238,9 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>Attendance Status</label>
-                            <select id="attendance_status" name="attendance_status" class="form-control" required>
+                            <select id="Edit_attendance_status" name="attendance_status" class="form-control" required>
                                 <option value="">Select Status</option>
-                                <option value="Present" selected>Present</option>
+                                <option value="Present">Present</option>
                                 <option value="Absent">Absent</option>
                                 <option value="Holiday">Holiday</option>
                             </select>
@@ -259,8 +256,7 @@
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                  >Close</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" id="EditUpdateEmployee" class="btn btn-primary">Save Employee</button>
             </div>
         </div>
@@ -269,19 +265,69 @@
 <!-- Edit Employee attendance Modal -->
 
 
+<!-- Bulk Edit Modal -->
+<div class="modal fade" id="bulkEditAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="bulkEditModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Attendance for Selected Employees</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <form id="bulkAttendanceForm">
+                    @csrf
+                    <table class="table table-bordered" id="bulkAttendanceTable">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Name</th>
+                                <th>Emp ID</th>
+                                <th>Pay/Day</th>
+                                <th>OT Amount</th>
+                                <th>OT Hours</th>
+                                <th>Attendance Status</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="saveBulkAttendance" class="btn btn-primary">Save All</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Bulk Edit Modal -->
+
+
 
 @include('include.footer')
 
 
 <script>
     $(document).ready(function () {
-
         $(function () {
-            $('.data-table').DataTable({
+            var table = $('.data-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('Attendance.index') }}",
                 columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function (data, type, row) {
+                            return `<input type="checkbox" class="employee_checkbox" value="${data}" data-row='${JSON.stringify(row)}'>`;
+                        }
+                    },
                     { data: 'id', name: 'id' },
                     { data: 'name', name: 'name' },
                     { data: 'empid', name: 'empid' },
@@ -308,7 +354,119 @@
                     }
                 ]
             });
+
+            // Select/Deselect All
+            $('#select_all').on('click', function () {
+                $('.employee_checkbox').prop('checked', this.checked);
+                toggleViewSelectedButton();
+            });
+
+            $(document).on('change', '.employee_checkbox', function () {
+                if (!this.checked) {
+                    $('#select_all').prop('checked', false);
+                }
+                toggleViewSelectedButton();
+            });
+
+            function toggleViewSelectedButton() {
+                let anyChecked = $('.employee_checkbox:checked').length > 0;
+                $('#viewSelectedEmployees').prop('disabled', !anyChecked);
+                $('#viewSingleAttendance').prop('disabled', anyChecked);
+            }
         });
+        $('#saveBulkAttendance').on('click', function () {
+            $.ajax({
+                url: "{{ route('attendance.bulkUpdate') }}",
+                method: "POST",
+                data: $('#bulkAttendanceForm').serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Attendance updated for selected employees!',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        $('#bulkEditAttendanceModal').modal('hide');
+                        $('.data-table').DataTable().ajax.reload();
+                    }
+                },
+                error: function (xhr) {
+                    console.log(xhr.responseText);
+                    alert('Error updating attendance!');
+                }
+            });
+        });
+
+// bulk save and select start
+        $('#viewSelectedEmployees').on('click', function () {
+            let selectedRows = [];
+            $('.employee_checkbox:checked').each(function () {
+                let row = JSON.parse($(this).attr('data-row'));
+                selectedRows.push(row);
+            });
+
+            let tbody = '';
+            selectedRows.forEach((row, index) => {
+                tbody += `<tr>
+            <td>${index + 1}</td>
+            <td>${row.name}<input type="hidden" name="employee_id[]" value="${row.id}"></td>
+            <td>${row.empid}</td>
+            <td class="pay">${row.payperday}</td>
+            <td><input type="number" class="form-control ot_amount" name="ot_amount[]" value="${row.ot_amount || 0}" step="0.01"></td>
+            <td><input type="number" class="form-control ot_hours" name="ot_hours[]" value="${row.ot_hours || 0}" step="0.01"></td>
+            <td>
+                <select class="form-control attendance_status" name="attendance_status[]">
+                    <option value="Present" ${row.attendance_status == 'Present' ? 'selected' : ''}>Present</option>
+                    <option value="Absent" ${row.attendance_status == 'Absent' ? 'selected' : ''}>Absent</option>
+                    <option value="Holiday" ${row.attendance_status == 'Holiday' ? 'selected' : ''}>Holiday</option>
+                </select>
+            </td>
+            <td><input type="number" class="form-control total_amount" name="total_amount[]" value="${row.total_amount || row.payperday}" readonly></td>
+        </tr>`;
+            });
+
+            $('#bulkAttendanceTable tbody').html(tbody);
+            $('#bulkEditAttendanceModal').modal('show');
+
+            // re-calculate total
+            function recalcTotal(row) {
+                let pay = parseFloat(row.find('.pay').text()) || 0;
+                let ot_amount = parseFloat(row.find('.ot_amount').val()) || 0;
+                let ot_hours = parseFloat(row.find('.ot_hours').val()) || 0;
+                let status = row.find('.attendance_status').val();
+                let total = (status === 'Absent' || status === 'Holiday')
+                    ? 0
+                    : pay + (ot_amount * ot_hours);
+                row.find('.total_amount').val(total.toFixed(2));
+            }
+            $('#bulkAttendanceTable').off('input').on('input', '.ot_amount, .ot_hours', function () {
+                let row = $(this).closest('tr');
+                recalcTotal(row);
+            });
+
+            $('#bulkAttendanceTable').off('change').on('change', '.attendance_status', function () {
+                let row = $(this).closest('tr');
+                let status = $(this).val();
+                if (status === 'Absent' || status === 'Holiday') {
+                    row.find('.ot_amount, .ot_hours').val(0).prop('disabled', true);
+                } else {
+                    row.find('.ot_amount, .ot_hours').prop('disabled', false);
+                }
+                recalcTotal(row);
+            });
+
+            $('#bulkAttendanceTable .attendance_status').each(function () {
+                let row = $(this).closest('tr');
+                let status = $(this).val();
+
+                if (status === 'Absent' || status === 'Holiday') {
+                    row.find('.ot_amount, .ot_hours').prop('disabled', true);
+                }
+            });
+        });
+// bulk save and select End 
 
         $('#employee_id').change(function () {
             let pay = $('option:selected', this).data('pay');
@@ -316,8 +474,14 @@
             calculateTotal();
         });
 
-        // Calculate total dynamically
-        $('#ot_amount, #ot_hours').on('input', function () {
+        // calculate total 
+        $('#attendance_status').on('change', function () {
+            let status = $(this).val();
+            if (status === 'Absent' || status === 'Holiday') {
+                $('#ot_amount, #ot_hours').prop('disabled', true).val(0);
+            } else {
+                $('#ot_amount, #ot_hours').prop('disabled', false);
+            }
             calculateTotal();
         });
 
@@ -325,11 +489,12 @@
             let pay = parseFloat($('#payperday').val()) || 0;
             let ot_amount = parseFloat($('#ot_amount').val()) || 0;
             let ot_hours = parseFloat($('#ot_hours').val()) || 0;
-            let total = pay + (ot_amount * ot_hours);
+            let status = $('#attendance_status').val();
+            let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
             $('#total_amount').val(total.toFixed(2));
         }
 
-        // AJAX Submit
+        // ajax submit
         $('#attendanceForm').on('submit', function (e) {
             e.preventDefault();
 
@@ -347,8 +512,8 @@
                             showConfirmButton: false
                         });
                         $('#attendanceForm')[0].reset();
-                $('#attendanceModal').modal('hide');
-                $('.data-table').DataTable().ajax.reload();
+                        $('#attendanceModal').modal('hide');
+                        $('.data-table').DataTable().ajax.reload();
                     }
                 },
                 error: function (xhr) {
@@ -359,65 +524,70 @@
         });
     });
 
-    //update employee attendance
+//update employee attendance-start
 
     function editemployeeattendance(data) {
-        // console.log(data);
         $("#emaployee_atten_id").val(data.id);
         $("#employee_id_name").val(data.name);
         $('#emaployee_atten_payperday').val(data.payperday);
 
-        $("#emaployee_atten_ot_amount").val(0);
-        $("#emaployee_atten_ot_hours").val(0);
+        $("#emaployee_atten_ot_amount").val(0).prop('disabled', false);
+        $("#emaployee_atten_ot_hours").val(0).prop('disabled', false);
         $("#emaployee_atten_total_amount").val(data.payperday);
-
         $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').off('input').on('input', calculateTotal);
+        $('#Edit_attendance_status').off('change').on('change', function () {
+            let status = $(this).val();
+            if (status === 'Absent' || status === 'Holiday') {
+                $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').val(0).prop('disabled', true);
+            } else {
+                $('#emaployee_atten_ot_amount, #emaployee_atten_ot_hours').prop('disabled', false);
+            }
+            calculateTotal();
+        });
 
-        // Calculate  total
-        calculateTotal();
+        $('#Edit_attendance_status').trigger('change');
 
         function calculateTotal() {
             let pay = parseFloat($('#emaployee_atten_payperday').val()) || 0;
             let ot_amount = parseFloat($('#emaployee_atten_ot_amount').val()) || 0;
             let ot_hours = parseFloat($('#emaployee_atten_ot_hours').val()) || 0;
-            let total = pay + (ot_amount * ot_hours);
+            let status = $('#Edit_attendance_status').val();
+            let total = (status === 'Absent' || status === 'Holiday') ? 0 : pay + (ot_amount * ot_hours);
             $('#emaployee_atten_total_amount').val(total.toFixed(2));
         }
-
     }
+    //update employee attendance-end
 
-$('#EditUpdateEmployee').on('click', function (e) {
-    e.preventDefault();
-    $.ajax({
-        url: "{{ route('attendance.update') }}",
-        method: "POST",
-        data: $('#employeeEditForm').serialize(), 
-        success: function (response) {
-            if (response.success) {
+    $('#EditUpdateEmployee').on('click', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "{{ route('attendance.update') }}",
+            method: "POST",
+            data: $('#employeeEditForm').serialize(),
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Attendance updated successfully!',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    $('#emaployee_atten_editM').modal('hide');
+                    $('#employeeEditForm')[0].reset();
+                    $('.data-table').DataTable().ajax.reload();
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
                 Swal.fire({
-                    title: 'Success!',
-                    text: 'Attendance updated successfully!',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
+                    title: 'Error!',
+                    text: 'Something went wrong while saving attendance!',
+                    icon: 'error'
                 });
-                $('#emaployee_atten_editM').modal('hide');
-                $('#employeeEditForm')[0].reset();
-                $('.data-table').DataTable().ajax.reload();
             }
-        },
-        error: function (xhr) {
-            console.log(xhr.responseText);
-            Swal.fire({
-                title: 'Error!',
-                text: 'Something went wrong while saving attendance!',
-                icon: 'error'
-            });
-        }
+        });
     });
-});
-
-  
 
     //view employee attendance 
 

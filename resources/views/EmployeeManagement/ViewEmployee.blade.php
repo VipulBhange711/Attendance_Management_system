@@ -11,7 +11,7 @@
     <div class="container-fluid">
 
         <a href="#" class="btn border add-btn shadow-none mx-2 d-none d-md-block" data-toggle="modal"
-            data-target="#exampleModal"><i class="las la-plus mr-2"></i>New Order
+            data-target="#exampleModal"><i class="las la-plus mr-2"></i>New Employee
         </a>
 
 

@@ -53,10 +53,10 @@ public function index(Request $request)
                     : '<span class="badge bg-warning">Pending</span>';
             })
             ->editColumn('attendance_status', function ($row) {
-                return $row->attendance_status ?? '<span class="text-muted">—</span>';
+                return $row->attendance_status ?? '<span class="text-muted"></span>';
             })
             ->editColumn('total_amount', function ($row) {
-                return $row->total_amount ?? '<span class="text-muted">—</span>';
+                return $row->total_amount ?? '';
             })
             ->rawColumns(['status', 'attendance_status', 'total_amount'])
             ->make(true);
@@ -115,6 +115,33 @@ public function index(Request $request)
     /**
      * Update the specified resource in storage.
      */
+
+    public function bulkUpdate(Request $request)
+{
+    $employee_ids = $request->employee_id;
+    $ot_amounts = $request->ot_amount;
+    $ot_hours = $request->ot_hours;
+    $statuses = $request->attendance_status;
+    $totals = $request->total_amount;
+
+    foreach($employee_ids as $i => $emp_id) {
+        DB::table('employee_attendance')->updateOrInsert(
+            ['employee_id' => $emp_id, 'attendance_date' => now()->toDateString()],
+            [
+                'payperday' => DB::table('employees')->where('id', $emp_id)->value('payperday'),
+                'ot_amount' => $ot_amounts[$i],
+                'ot_hours' => $ot_hours[$i],
+                'total_amount' => $totals[$i],
+                'attendance_status' => $statuses[$i],
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+    }
+
+    return response()->json(['success' => true]);
+}
+
 public function update(Request $request)
 {
     DB::table('employee_attendance')->upsert([
